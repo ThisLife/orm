@@ -57,7 +57,7 @@ class NonStrictReadWriteCachedEntityPersister extends AbstractEntityPersister
         }
 
         if ($isChanged) {
-            $this->timestampRegion->update($this->timestampKey);
+            $this->timestampRegion->update($this->getTimestampCacheKey());
         }
 
         $this->queuedCache = [];

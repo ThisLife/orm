@@ -66,9 +66,6 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
     /** @var TimestampRegion */
     protected $timestampRegion;
 
-    /** @var TimestampCacheKey */
-    protected $timestampKey;
-
     /** @var EntityHydrator */
     protected $hydrator;
 
@@ -110,7 +107,6 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
         $this->cacheLogger     = $cacheConfig->getCacheLogger();
         $this->timestampRegion = $cacheFactory->getTimestampRegion();
         $this->hydrator        = $cacheFactory->buildEntityHydrator($em, $class);
-        $this->timestampKey    = new TimestampCacheKey($this->class->rootEntityName);
     }
 
     /**
@@ -352,7 +348,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
         $query      = $this->persister->getSelectSQL($criteria, null, null, $limit, null, $orderBy);
         $hash       = $this->getHash($query, $criteria, null, null, null);
         $rsm        = $this->getResultSetMapping();
-        $queryKey   = new QueryCacheKey($hash, 0, Cache::MODE_NORMAL, $this->timestampKey);
+        $queryKey   = new QueryCacheKey($hash, 0, Cache::MODE_NORMAL, $this->getTimestampCacheKey());
         $queryCache = $this->cache->getQueryCache($this->regionName);
         $result     = $queryCache->get($queryKey, $rsm);
 
@@ -393,7 +389,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
         $query      = $this->persister->getSelectSQL($criteria, null, null, $limit, $offset, $orderBy);
         $hash       = $this->getHash($query, $criteria, null, null, null);
         $rsm        = $this->getResultSetMapping();
-        $queryKey   = new QueryCacheKey($hash, 0, Cache::MODE_NORMAL, $this->timestampKey);
+        $queryKey   = new QueryCacheKey($hash, 0, Cache::MODE_NORMAL, $this->getTimestampCacheKey());
         $queryCache = $this->cache->getQueryCache($this->regionName);
         $result     = $queryCache->get($queryKey, $rsm);
 
@@ -496,7 +492,8 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
         $query       = $this->persister->getSelectSQL($criteria);
         $hash        = $this->getHash($query, $criteria, $orderBy, $limit, $offset);
         $rsm         = $this->getResultSetMapping();
-        $queryKey    = new QueryCacheKey($hash, 0, Cache::MODE_NORMAL, $this->timestampKey);
+        $queryKey    = new QueryCacheKey($hash, 0, Cache::MODE_NORMAL, $this->getTimestampCacheKey());
+
         $queryCache  = $this->cache->getQueryCache($this->regionName);
         $cacheResult = $queryCache->get($queryKey, $rsm);
 
@@ -630,5 +627,12 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
         assert($metadata instanceof ClassMetadata);
 
         return new CollectionCacheKey($metadata->rootEntityName, $association['fieldName'], $ownerId);
+    }
+
+    protected function getTimestampCacheKey()
+    {
+        $specifier = $this->cache->getTimestampRegionKeySpecifier() ?? Cache::DEFAULT_TIMESTAMP_KEY_SPECIFIER;
+
+        return new TimestampCacheKey($this->class->rootEntityName . '_' . $specifier);
     }
 }

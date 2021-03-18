@@ -32,6 +32,8 @@ interface Cache
 
     public const DEFAULT_TIMESTAMP_REGION_NAME = 'timestamp_cache_region';
 
+    public const DEFAULT_TIMESTAMP_KEY_SPECIFIER = 'global';
+
     /**
      * May read items from the cache, but will not add items.
      */
@@ -175,4 +177,29 @@ interface Cache
      * @return QueryCache The Query Cache associated with the region name.
      */
     public function getQueryCache($regionName = null);
+
+    /**
+     * Sets a string that will be included in the timestamp region key. This allows more granular control over the
+     * set of queries that are invalidated when a timestamp region is updated.
+     *
+     * @param string $specifier
+     */
+    public function setTimestampRegionKeySpecifier(string $specifier): void;
+
+    /**
+     * Retrieves the timestamp region specifier. This string should be included in the timestamp region key to allow
+     * more granular control over the query invalidation when a timestamp region is updated.
+     *
+     * @return string|null
+     */
+    public function getTimestampRegionKeySpecifier(): ?string;
+
+    /**
+     * Updates the timestamp cache for a given entity, invalidating all the queries associated with it.
+     * With optionals specifier we can update only a subset of the queries for the given entity.
+     *
+     * @param string      $className
+     * @param string|null $specifier
+     */
+    public function updateTimestampCache(string $className, string $specifier = null): void;
 }

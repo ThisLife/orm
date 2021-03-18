@@ -1141,8 +1141,9 @@ abstract class AbstractQuery
         }
 
         $metadata = $this->_em->getClassMetadata($entityName);
+        $specifier = $this->_em->getCache()->getTimestampRegionKeySpecifier() ?? Cache::DEFAULT_TIMESTAMP_KEY_SPECIFIER;
 
-        return new Cache\TimestampCacheKey($metadata->rootEntityName);
+        return new Cache\TimestampCacheKey($metadata->rootEntityName . '_' . $specifier);
     }
 
     /**
